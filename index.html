@@ -40,7 +40,7 @@ const persist=()=>{try{localStorage.setItem(SV,JSON.stringify(sv))}catch(e){}};
 let AC;function beep(f,d,t,v){if(!sv.snd)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),gn=AC.createGain();o.type=t||'square';o.frequency.value=f;gn.gain.value=v||.04;gn.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.connect(gn);gn.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
 const R=(a,b)=>Math.floor(a+Math.random()*(b-a+1));
 const CLS=[{n:'المحارب',e:'🗡️',hp:34,atk:4,ar:1,d:'صحة عالية ودرع'},{n:'اللص',e:'🥷',hp:26,atk:4,ar:0,d:'ضربة قاتلة 30% (x2.5) وبيتفادى 20%'},{n:'الساحر',e:'🧙',hp:22,atk:3,ar:0,d:'بيضرب بعيد (3 خانات) في خط مستقيم'}];
-const EN={r:{n:'فار',e:'🐀',hp:5,atk:2,xp:3,g:2},b:{n:'خفاش',e:'🦇',hp:4,atk:3,xp:4,g:3,fly:1},s:{n:'هيكل',e:'💀',hp:12,atk:4,xp:8,g:5},z:{n:'غول',e:'🧟',hp:20,atk:6,xp:14,g:8,poison:1},a:{n:'رامي',e:'🏹',hp:7,atk:4,xp:6,g:5,rng:1},m:{n:'سلايم',e:'🟢',hp:9,atk:3,xp:6,g:4,split:1},k:{n:'حارس الظلام',e:'👹',hp:60,atk:8,xp:60,g:60,boss:1},K:{n:'ملك الزنزانة',e:'🐲',hp:120,atk:12,xp:200,g:150,boss:1}};
+const EN={r:{n:'فار',e:'🐀',hp:5,atk:2,xp:3,g:2},b:{n:'خفاش',e:'🦇',hp:4,atk:3,xp:4,g:3,fly:1},s:{n:'هيكل',e:'💀',hp:12,atk:4,xp:8,g:5},z:{n:'غول',e:'🧟',hp:20,atk:6,xp:14,g:8,poison:1},a:{n:'رامي',e:'🏹',hp:7,atk:4,xp:6,g:5,rng:1},m:{n:'سلايم',e:'🟢',hp:9,atk:3,xp:6,g:4,split:1},v:{n:'لص',e:'🥷',hp:9,atk:2,xp:8,g:14,thief:1},k:{n:'حارس الظلام',e:'👹',hp:60,atk:8,xp:60,g:60,boss:1},K:{n:'ملك الزنزانة',e:'🐲',hp:120,atk:12,xp:200,g:150,boss:1}};
 const MW=36,MH=36;let M,P,ens,its,explored,floor,turn,over,logt,locked;
 function msg(t){document.getElementById('log').textContent=t}
 function gen(){M=[];for(let y=0;y<MH;y++){M.push(new Array(MW).fill(0))}const rooms=[];
@@ -48,7 +48,7 @@ function gen(){M=[];for(let y=0;y<MH;y++){M.push(new Array(MW).fill(0))}const ro
  const c=r=>[Math.floor(r.x+r.w/2),Math.floor(r.y+r.h/2)];
  for(let i=1;i<rooms.length;i++){let[a,b]=c(rooms[i-1]),[d,e]=c(rooms[i]);while(a!==d){M[b][a]=1;a+=a<d?1:-1}while(b!==e){M[b][a]=1;b+=b<e?1:-1}}
  const[sx,sy]=c(rooms[0]);const[ex,ey]=c(rooms[rooms.length-1]);M[ey][ex]=2;P.x=sx;P.y=sy;ens=[];its=[];explored=M.map(r=>r.map(()=>0));
- const pool=floor<3?['r','r','b','m']:floor<5?['r','b','s','m','a','a']:floor<8?['s','z','m','a','z']:['z','a','s','m','z'];
+ const pool=floor<3?['r','r','b','m','v']:floor<5?['r','b','s','m','a','v']:floor<8?['s','z','m','a','z','v']:['z','a','s','m','z','v'];
  for(let i=1;i<rooms.length;i++){const r=rooms[i];const n=R(1,2+Math.floor(floor/3));for(let k=0;k<n;k++){const t=pool[R(0,pool.length-1)];const d=EN[t];const sc=1+(floor-1)*.12;spawnE(t,R(r.x,r.x+r.w-1),R(r.y,r.y+r.h-1),Math.round(d.hp*sc))}
   if(Math.random()<.55)its.push({x:R(r.x,r.x+r.w-1),y:R(r.y,r.y+r.h-1),k:['g','g','g','p','p','w','a','h','c'][R(0,8)]});if(Math.random()<.4)its.push({x:R(r.x,r.x+r.w-1),y:R(r.y,r.y+r.h-1),k:'t'})}
  if(floor%3===0&&floor<10||floor===2){const r=rooms[0];its.push({x:r.x+r.w-1,y:r.y,k:'M'})}
@@ -89,7 +89,7 @@ if(it.k==='g'){const v=R(3,8)+floor*2;P.gold+=v;msg('+'+v+' 💰')}else if(it.k=
 function tick(){turn++;if(P.psn>0){P.psn--;P.hp-=1;fl(P.x,P.y,'☠️-1','#9f4');if(P.hp<=0){P.hp=0;hud();die();return}}
 
  for(const e of ens){const d=Math.abs(e.x-P.x)+Math.abs(e.y-P.y);if(e.sl){if(d<=6)e.sl=false;else continue}
-  if(d===1){if(sv.cls===1&&Math.random()<.2){fl(P.x,P.y,'تفادي','#9f9');continue}const dm=Math.max(1,e.atk-P.ar+R(-1,1));P.hp-=dm;fl(P.x,P.y,'-'+dm,'#f66');beep(150,.12,'sawtooth',.05);shake=.3;if(e.poison&&Math.random()<.6){P.psn=4;msg('اتسممت ☠️')}continue}
+  if(d===1){if(sv.cls===1&&Math.random()<.2){fl(P.x,P.y,'تفادي','#9f9');continue}const dm=Math.max(1,e.atk-P.ar+R(-1,1));P.hp-=dm;fl(P.x,P.y,'-'+dm,'#f66');beep(150,.12,'sawtooth',.05);shake=.3;if(e.thief&&P.gold>0){const sl=Math.min(P.gold,4+floor);P.gold-=sl;msg('اللص سرق '+sl+' 💰 اقتله!');fl(P.x,P.y,'-'+sl+'💰','#fc4')}if(e.poison&&Math.random()<.6){P.psn=4;msg('اتسممت ☠️')}continue}
   if(d>9)continue;if(e.rng&&(e.x===P.x||e.y===P.y)&&d<=5){let clear=true;const sx=Math.sign(P.x-e.x),sy=Math.sign(P.y-e.y);for(let i=1;i<d;i++){const X=e.x+sx*i,Y=e.y+sy*i;if(M[Y][X]===0||enAt(X,Y)){clear=false;break}}if(clear){const dm=Math.max(1,e.atk-P.ar+R(-1,0));P.hp-=dm;fl(P.x,P.y,'🏹-'+dm,'#f96');for(let i=1;i<d;i++)FT.push({x:e.x+sx*i,y:e.y+sy*i,t:'•',c:'#fc6',l:.5});beep(250,.1,'square',.05);shake=.2;continue}}
   if(e.fly&&Math.random()<.35){const o=[[1,0],[-1,0],[0,1],[0,-1]][R(0,3)];mv(e,e.x+o[0],e.y+o[1]);continue}
   const dx=P.x-e.x,dy=P.y-e.y;const ord=Math.abs(dx)>=Math.abs(dy)?[[Math.sign(dx),0],[0,Math.sign(dy)]]:[[0,Math.sign(dy)],[Math.sign(dx),0]];for(const[a,b]of ord){if(a===0&&b===0)continue;if(mv(e,e.x+a,e.y+b))break}
