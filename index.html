@@ -40,7 +40,7 @@ const persist=()=>{try{localStorage.setItem(SV,JSON.stringify(sv))}catch(e){}};
 let AC;function beep(f,d,t,v){if(!sv.snd)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),gn=AC.createGain();o.type=t||'square';o.frequency.value=f;gn.gain.value=v||.04;gn.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.connect(gn);gn.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
 const R=(a,b)=>Math.floor(a+Math.random()*(b-a+1));
 const CLS=[{n:'المحارب',e:'🗡️',hp:34,atk:4,ar:1,d:'صحة عالية ودرع'},{n:'اللص',e:'🥷',hp:26,atk:4,ar:0,d:'ضربة قاتلة 30% (x2.5) وبيتفادى 20%'},{n:'الساحر',e:'🧙',hp:22,atk:3,ar:0,d:'بيضرب بعيد (3 خانات) في خط مستقيم'}];
-const EN={r:{n:'فار',e:'🐀',hp:5,atk:2,xp:3,g:2},b:{n:'خفاش',e:'🦇',hp:4,atk:3,xp:4,g:3,fly:1},s:{n:'هيكل',e:'💀',hp:12,atk:4,xp:8,g:5},z:{n:'غول',e:'🧟',hp:20,atk:6,xp:14,g:8},a:{n:'رامي',e:'🏹',hp:7,atk:4,xp:6,g:5,rng:1},m:{n:'سلايم',e:'🟢',hp:9,atk:3,xp:6,g:4,split:1},k:{n:'حارس الظلام',e:'👹',hp:60,atk:8,xp:60,g:60,boss:1},K:{n:'ملك الزنزانة',e:'🐲',hp:120,atk:12,xp:200,g:150,boss:1}};
+const EN={r:{n:'فار',e:'🐀',hp:5,atk:2,xp:3,g:2},b:{n:'خفاش',e:'🦇',hp:4,atk:3,xp:4,g:3,fly:1},s:{n:'هيكل',e:'💀',hp:12,atk:4,xp:8,g:5},z:{n:'غول',e:'🧟',hp:20,atk:6,xp:14,g:8,poison:1},a:{n:'رامي',e:'🏹',hp:7,atk:4,xp:6,g:5,rng:1},m:{n:'سلايم',e:'🟢',hp:9,atk:3,xp:6,g:4,split:1},k:{n:'حارس الظلام',e:'👹',hp:60,atk:8,xp:60,g:60,boss:1},K:{n:'ملك الزنزانة',e:'🐲',hp:120,atk:12,xp:200,g:150,boss:1}};
 const MW=36,MH=36;let M,P,ens,its,explored,floor,turn,over,logt,locked;
 function msg(t){document.getElementById('log').textContent=t}
 function gen(){M=[];for(let y=0;y<MH;y++){M.push(new Array(MW).fill(0))}const rooms=[];
@@ -51,10 +51,11 @@ function gen(){M=[];for(let y=0;y<MH;y++){M.push(new Array(MW).fill(0))}const ro
  const pool=floor<3?['r','r','b','m']:floor<5?['r','b','s','m','a','a']:floor<8?['s','z','m','a','z']:['z','a','s','m','z'];
  for(let i=1;i<rooms.length;i++){const r=rooms[i];const n=R(1,2+Math.floor(floor/3));for(let k=0;k<n;k++){const t=pool[R(0,pool.length-1)];const d=EN[t];const sc=1+(floor-1)*.12;spawnE(t,R(r.x,r.x+r.w-1),R(r.y,r.y+r.h-1),Math.round(d.hp*sc))}
   if(Math.random()<.55)its.push({x:R(r.x,r.x+r.w-1),y:R(r.y,r.y+r.h-1),k:['g','g','g','p','p','w','a','h','c'][R(0,8)]});if(Math.random()<.4)its.push({x:R(r.x,r.x+r.w-1),y:R(r.y,r.y+r.h-1),k:'t'})}
+ if(floor%3===0&&floor<10||floor===2){const r=rooms[0];its.push({x:r.x+r.w-1,y:r.y,k:'M'})}
  if(floor===5||floor===10){const r=rooms[rooms.length-1];const t=floor===5?'k':'K';spawnE(t,r.x+1,r.y+1,EN[t].hp);M[ey][ex]=floor===10?3:2;if(floor===10)M[ey][ex]=1;P.bossFloor=true}else P.bossFloor=false}
 function spawnE(t,x,y,hp){if(M[y][x]!==1||ens.some(e=>e.x===x&&e.y===y)||(x===P.x&&y===P.y))return;const d=EN[t];ens.push({...d,t,x,y,hp,mhp:hp,atk:Math.round(d.atk*(1+(floor-1)*.08)),sl:true})}
 function newRun(){P={x:0,y:0,hp:CLS[sv.cls].hp+sv.up.hp*4,mhp:CLS[sv.cls].hp+sv.up.hp*4,atk:CLS[sv.cls].atk+sv.up.atk,ar:CLS[sv.cls].ar,lvl:1,xp:0,pot:1+sv.up.pot,gold:0,kills:0};floor=1;turn=0;over=false;locked=false;gen();hud();msg('نزلت الدور 1');draw()}
-function hud(){document.getElementById('fl').textContent='🏰 دور '+floor+'/10';document.getElementById('lv').textContent='مستوى '+P.lvl+' ⚔️'+P.atk+' 🛡️'+P.ar;document.getElementById('gd').textContent='💰 '+P.gold;document.getElementById('hp').style.width=Math.max(0,P.hp/P.mhp*100)+'%';document.getElementById('xp').style.width=(P.xp/(P.lvl*10)*100)+'%';document.getElementById('pc').textContent=P.pot}
+function hud(){document.getElementById('fl').textContent='🏰 دور '+floor+'/10';document.getElementById('lv').textContent='مستوى '+P.lvl+' ⚔️'+P.atk+' 🛡️'+P.ar+(P.psn>0?' ☠️':'');document.getElementById('gd').textContent='💰 '+P.gold;document.getElementById('hp').style.width=Math.max(0,P.hp/P.mhp*100)+'%';document.getElementById('xp').style.width=(P.xp/(P.lvl*10)*100)+'%';document.getElementById('pc').textContent=P.pot}
 function vis(){for(let y=-6;y<=6;y++)for(let x=-6;x<=6;x++){const X=P.x+x,Y=P.y+y;if(X>=0&&Y>=0&&X<MW&&Y<MH&&x*x+y*y<=30)explored[Y][X]=2}}
 function isV(x,y){return (x-P.x)**2+(y-P.y)**2<=30}
 function enAt(x,y){return ens.find(e=>e.x===x&&e.y===y)}
@@ -66,24 +67,29 @@ function dmgE(e,d,crit){e.hp-=d;fl(e.x,e.y,'-'+d,crit?'#fd6':'#fff');beep(crit?3
 const FT=[];function fl(x,y,t,c){FT.push({x,y,t,c,l:1})}
 function levelUp(){P.xp-=P.lvl*10;P.lvl++;locked=true;beep(660,.3,'sine',.06);const opts=[{t:'❤️ +8 صحة قصوى وعلاج 8',f:()=>{P.mhp+=8;P.hp=Math.min(P.mhp,P.hp+8)}},{t:'⚔️ +2 هجوم',f:()=>P.atk+=2},{t:'🛡️ +1 درع',f:()=>P.ar+=1},{t:'🧪 +1 جرعة',f:()=>P.pot++},{t:'💖 علاج كامل',f:()=>P.hp=P.mhp}].sort(()=>Math.random()-.5).slice(0,3);
  const el=document.getElementById('opts');el.innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.className='b';b.textContent=o.t;b.onclick=()=>{o.f();document.getElementById('pick').classList.add('hide');locked=false;hud();draw()};el.appendChild(b)});document.getElementById('pick').classList.remove('hide');if(P.xp>=P.lvl*10){}}
+function openShop(){locked=true;const pk=document.getElementById('pick');pk.querySelector('h1').textContent='التاجر 🧙';pk.querySelector('p').textContent='معاك '+P.gold+' 💰';const el=document.getElementById('opts');el.innerHTML='';
+ const items=[{t:'🧪 جرعة — 15💰',c:15,f:()=>P.pot++},{t:'💖 علاج كامل — 25💰',c:25,f:()=>P.hp=P.mhp},{t:'⚔️ +2 هجوم — 40💰',c:40,f:()=>P.atk+=2},{t:'🛡️ +1 درع — 35💰',c:35,f:()=>P.ar+=1},{t:'خروج',c:0,f:()=>{}}];
+ items.forEach(o=>{const b=document.createElement('button');b.className='b';b.textContent=o.t;b.disabled=P.gold<o.c;if(b.disabled)b.style.opacity=.4;b.onclick=()=>{P.gold-=o.c;o.f();if(o.c)msg('اشتريت من التاجر');pk.querySelector('h1').textContent='مستوى جديد! ⬆️';pk.querySelector('p').textContent='اختار ترقية';pk.classList.add('hide');locked=false;hud();draw()};el.appendChild(b)});pk.classList.remove('hide')}
 function act(dx,dy){if(over||locked)return;let nx=P.x+dx,ny=P.y+dy;let used=true;
  const e=enAt(nx,ny);
+ {const mm=its.find(i=>i.k==='M'&&i.x===nx&&i.y===ny);if(mm){mm.k='m';openShop();return}}
  if(sv.cls===2){// mage ranged
    let tgt=null;for(let i=1;i<=3;i++){const X=P.x+dx*i,Y=P.y+dy*i;if(M[Y]===undefined||M[Y][X]===0)break;const z=enAt(X,Y);if(z){tgt=z;break}}
    if(tgt){dmgE(tgt,P.atk+R(0,2)+1,false);for(let i=1;i<=3;i++)FT.push({x:P.x+dx*i,y:P.y+dy*i,t:'✨',c:'#9cf',l:.6});tick();return}}
  if(e){let d=P.atk+R(0,2),cr=false;if(sv.cls===1&&Math.random()<.3){d=Math.round(d*2.5);cr=true;msg('ضربة قاتلة!')}dmgE(e,d,cr);tick();return}
  if(M[ny][nx]===0){return}
  P.x=nx;P.y=ny;
- const it=its.find(i=>i.x===nx&&i.y===ny&&i.k!=='T');if(it){its=its.filter(i=>i!==it);pick(it)}
+ const it=its.find(i=>i.x===nx&&i.y===ny&&i.k!=='T'&&i.k!=='m');if(it){its=its.filter(i=>i!==it);pick(it)}
  if(M[ny][nx]===2&&ens.some(z=>z.boss)){msg('اقتل الحارس الأول! 👹');tick();return}
  if(M[ny][nx]===2){floor++;if(floor>10){win();return}P.hp=Math.min(P.mhp,P.hp+Math.floor(P.mhp*.25));gen();msg('الدور '+floor+(floor===5||floor===10?' ⚠️ في حارس!':''));beep(500,.3,'triangle');hud();draw();return}
  tick()}
 function pick(it){if(it.k==='t'){const d=3+floor;P.hp-=d;it.k='T';its.push(it);fl(P.x,P.y,'-'+d,'#f66');msg('فخ مسنن! 🕳️ -'+d);beep(120,.2,'sawtooth',.06);shake=.4;if(P.hp<=0){P.hp=0;hud();die()}return}
  if(it.k==='c'){const r=R(0,3);if(r===0){const v=20+floor*6;P.gold+=v;msg('صندوق: +'+v+'💰')}else if(r===1){P.pot++;msg('صندوق: جرعة 🧪')}else if(r===2){P.atk++;msg('صندوق: سيف +1 ⚔️')}else{P.ar++;msg('صندوق: درع +1 🛡️')}beep(900,.2,'sine',.06);return}
 if(it.k==='g'){const v=R(3,8)+floor*2;P.gold+=v;msg('+'+v+' 💰')}else if(it.k==='p'){P.pot++;msg('خدت جرعة 🧪')}else if(it.k==='w'){P.atk+=1;msg('سيف أحسن ⚔️ +1')}else if(it.k==='a'){P.ar+=1;msg('درع أحسن 🛡️ +1')}else if(it.k==='h'){P.hp=Math.min(P.mhp,P.hp+8);msg('أكلة ❤️ +8')}beep(800,.1,'sine',.05)}
-function tick(){turn++;
+function tick(){turn++;if(P.psn>0){P.psn--;P.hp-=1;fl(P.x,P.y,'☠️-1','#9f4');if(P.hp<=0){P.hp=0;hud();die();return}}
+
  for(const e of ens){const d=Math.abs(e.x-P.x)+Math.abs(e.y-P.y);if(e.sl){if(d<=6)e.sl=false;else continue}
-  if(d===1){if(sv.cls===1&&Math.random()<.2){fl(P.x,P.y,'تفادي','#9f9');continue}const dm=Math.max(1,e.atk-P.ar+R(-1,1));P.hp-=dm;fl(P.x,P.y,'-'+dm,'#f66');beep(150,.12,'sawtooth',.05);shake=.3;continue}
+  if(d===1){if(sv.cls===1&&Math.random()<.2){fl(P.x,P.y,'تفادي','#9f9');continue}const dm=Math.max(1,e.atk-P.ar+R(-1,1));P.hp-=dm;fl(P.x,P.y,'-'+dm,'#f66');beep(150,.12,'sawtooth',.05);shake=.3;if(e.poison&&Math.random()<.6){P.psn=4;msg('اتسممت ☠️')}continue}
   if(d>9)continue;if(e.rng&&(e.x===P.x||e.y===P.y)&&d<=5){let clear=true;const sx=Math.sign(P.x-e.x),sy=Math.sign(P.y-e.y);for(let i=1;i<d;i++){const X=e.x+sx*i,Y=e.y+sy*i;if(M[Y][X]===0||enAt(X,Y)){clear=false;break}}if(clear){const dm=Math.max(1,e.atk-P.ar+R(-1,0));P.hp-=dm;fl(P.x,P.y,'🏹-'+dm,'#f96');for(let i=1;i<d;i++)FT.push({x:e.x+sx*i,y:e.y+sy*i,t:'•',c:'#fc6',l:.5});beep(250,.1,'square',.05);shake=.2;continue}}
   if(e.fly&&Math.random()<.35){const o=[[1,0],[-1,0],[0,1],[0,-1]][R(0,3)];mv(e,e.x+o[0],e.y+o[1]);continue}
   const dx=P.x-e.x,dy=P.y-e.y;const ord=Math.abs(dx)>=Math.abs(dy)?[[Math.sign(dx),0],[0,Math.sign(dy)]]:[[0,Math.sign(dy)],[Math.sign(dx),0]];for(const[a,b]of ord){if(a===0&&b===0)continue;if(mv(e,e.x+a,e.y+b))break}
@@ -94,7 +100,7 @@ function mv(e,x,y){if(M[y][x]===0||enAt(x,y)||(x===P.x&&y===P.y))return false;e.
 let shake=0;
 function die(){over=true;const sc=P.gold+floor*10+P.kills;sv.gold+=P.gold;if(floor>sv.best)sv.best=floor;persist();draw();setTimeout(()=>{document.getElementById('et').textContent='مت 💀';document.getElementById('er').innerHTML='وصلت الدور '+floor+'<br>قتلت '+P.kills+' · مستوى '+P.lvl+'<br>💰 '+P.gold+' اتحفظت (إجمالي '+sv.gold+')';document.getElementById('end').classList.remove('hide')},700)}
 function win(){over=true;const bonus=100;sv.gold+=P.gold+bonus;sv.best=10;sv.wins++;persist();setTimeout(()=>{document.getElementById('et').textContent='كسبت! 🏆';document.getElementById('er').innerHTML='قتلت ملك الزنزانة!<br>💰 '+(P.gold+bonus)+' (بونص '+bonus+') · إجمالي '+sv.gold;document.getElementById('end').classList.remove('hide')},500)}
-function drink(){if(over||locked||P.pot<=0||P.hp>=P.mhp)return;P.pot--;P.hp=Math.min(P.mhp,P.hp+Math.ceil(P.mhp*.5));msg('شربت جرعة 🧪');beep(700,.2,'sine',.06);tick()}
+function drink(){if(over||locked||P.pot<=0||(P.hp>=P.mhp&&!(P.psn>0)))return;P.pot--;P.hp=Math.min(P.mhp,P.hp+Math.ceil(P.mhp*.5));P.psn=0;msg('شربت جرعة 🧪');beep(700,.2,'sine',.06);tick()}
 function rs(){W=innerWidth;H=innerHeight-70-150;cv.width=W;cv.height=H;cv.style.width=W+'px';cv.style.height=H+'px';TS=Math.floor(Math.min(W/9,H/11));VX=Math.floor(W/TS/2);VY=Math.floor(H/TS/2);if(P)draw()}
 addEventListener('resize',rs);
 function draw(){if(!P)return;g.setTransform(1,0,0,1,0,0);g.fillStyle='#0a0708';g.fillRect(0,0,W,H);vis();
@@ -102,7 +108,7 @@ function draw(){if(!P)return;g.setTransform(1,0,0,1,0,0);g.fillStyle='#0a0708';g
  for(let y=Math.max(0,P.y-VY-1);y<=Math.min(MH-1,P.y+VY+1);y++)for(let x=Math.max(0,P.x-VX-1);x<=Math.min(MW-1,P.x+VX+1);x++){const e=explored[y][x];if(!e)continue;const t=M[y][x];const vv=isV(x,y);const px=ox+x*TS,py=oy+y*TS;
   if(t===0){const near=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]].some(([a,b])=>M[y+b]&&M[y+b][x+a]>0&&explored[y+b][x+a]);if(!near)continue;g.fillStyle=vv?'#3a2a34':'#1f1620'}else g.fillStyle=vv?((x+y)%2?'#241a22':'#2a1f28'):'#130d12';g.fillRect(px,py,TS-1,TS-1);
   if(t===2){g.fillText('🪜',px+TS/2,py+TS/2)}}
- for(const i of its){if(i.k==='t')continue;if(!explored[i.y][i.x]||!isV(i.x,i.y))continue;g.fillText({g:'💰',p:'🧪',w:'🗡️',a:'🛡️',h:'🍖',c:'📦',T:'🕳️'}[i.k],ox+i.x*TS+TS/2,oy+i.y*TS+TS/2)}
+ for(const i of its){if(i.k==='t')continue;if(!explored[i.y][i.x]||!isV(i.x,i.y))continue;g.fillText({g:'💰',p:'🧪',w:'🗡️',a:'🛡️',h:'🍖',c:'📦',T:'🕳️',M:'🧙',m:'🧙'}[i.k],ox+i.x*TS+TS/2,oy+i.y*TS+TS/2)}
  for(const e of ens){if(!isV(e.x,e.y))continue;g.font=(TS*(e.boss?1.1:.7))+'px sans-serif';g.fillText(e.e,ox+e.x*TS+TS/2,oy+e.y*TS+TS/2);g.font=(TS*.7)+'px sans-serif';g.fillStyle='#400';g.fillRect(ox+e.x*TS+2,oy+e.y*TS,TS-5,4);g.fillStyle='#f44';g.fillRect(ox+e.x*TS+2,oy+e.y*TS,(TS-5)*Math.max(0,e.hp/e.mhp),4)}
  g.fillText(CLS[sv.cls].e,ox+P.x*TS+TS/2,oy+P.y*TS+TS/2);
  // fog glow
